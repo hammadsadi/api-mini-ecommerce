@@ -15,6 +15,7 @@ app.use(
   })
 );
 
+// MongoDB URI For Connect
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@syedsadibd.a5hvdhf.mongodb.net/?retryWrites=true&w=majority&appName=syedsadibd`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -26,8 +27,24 @@ const client = new MongoClient(uri, {
   },
 });
 
+// DB Connection
 async function run() {
   try {
+    // Database and Collections here
+    const productCollection = client
+      .db("miniEcommerceDB")
+      .collection("products");
+
+    // Get ll Products Routes
+    app.get("/products", async (req, res) => {
+      try {
+        const products = await productCollection.find().toArray();
+        res.status(200).json(products);
+      } catch (error) {
+        return res.status(500).json({ message: error.message, success: false });
+      }
+    });
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
@@ -37,7 +54,6 @@ async function run() {
     );
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
   }
 }
 run().catch(console.dir);
