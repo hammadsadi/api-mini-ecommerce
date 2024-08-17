@@ -38,35 +38,57 @@ async function run() {
     // Get ll Products Routes
     app.get("/products", async (req, res) => {
       try {
-        const { category } = req.query;
+        const { search, brand, category, minPrice, maxPrice, sortBy } =
+          req.query;
+
         let query = {};
-        // console.log(category);
-        if (category && category !== "null") {
-          //  Low to High Price
-          if (category === "lowToHigh") {
-            const products = await productCollection
-              .find()
-              .sort({ price: 1 })
-              .toArray();
-            return res.status(200).json(products);
-          }
 
-          //  High To Low Price
-          if (category === "highToLow") {
-            const products = await productCollection
-              .find()
-              .sort({ price: -1 })
-              .toArray();
-            return res.status(200).json(products);
-          }
-
-          // query = { category };
+        if (search) {
+          query.productName = { $regex: new RegExp(search, "i") };
         }
-        const products = await productCollection.find().toArray();
-        console.log("from end");
-        res.status(200).json(products);
-      } catch (error) {
-        return res.status(500).json({ message: error.message, success: false });
+
+        // Filter by brand
+        if (brand) {
+          query.brand = brand;
+        }
+
+        // Filter by category
+        if (category) {
+          query.category = category;
+        }
+
+        // Filter by price range
+        if (minPrice && maxPrice) {
+          query.price = {
+            $gte: parseFloat(minPrice),
+            $lte: parseFloat(maxPrice),
+          };
+        } else if (minPrice) {
+          query.price = { $gte: parseFloat(minPrice) };
+        } else if (maxPrice) {
+          query.price = { $lte: parseFloat(maxPrice) };
+        }
+
+        let sort = {};
+
+        // Sorting
+        if (sortBy === "priceAsc") {
+          sort.price = 1;
+        } else if (sortBy === "priceDesc") {
+          sort.price = -1;
+        } else if (sortBy === "newest") {
+          sort.createdAt = -1;
+        }
+
+        const products = await productCollection
+          .find(query)
+          .sort(sort)
+          .toArray();
+        res.json(products);
+      } catch (err) {
+        res
+          .status(500)
+          .json({ message: "Error retrieving products", error: err });
       }
     });
 
