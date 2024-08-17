@@ -49,7 +49,7 @@ async function run() {
 
         // Filter by brand
         if (brand) {
-          query.brand = brand;
+          query.brandName = brand;
         }
 
         // Filter by category
@@ -72,12 +72,12 @@ async function run() {
         let sort = {};
 
         // Sorting
-        if (sortBy === "priceAsc") {
+        if (sortBy === "lowToHigh") {
           sort.price = 1;
-        } else if (sortBy === "priceDesc") {
+        } else if (sortBy === "highToLow") {
           sort.price = -1;
-        } else if (sortBy === "newest") {
-          sort.createdAt = -1;
+        } else if (sortBy === "newestFirst") {
+          sort.creationDateTime = -1;
         }
 
         const products = await productCollection
