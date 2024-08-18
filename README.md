@@ -24,7 +24,11 @@ DB_PASS;
 PORT;
 ```
 
-4. Run This Project following on this command
+4. Add Your Client Site URL on Cors Origin
+
+5. Menually Create Database ( miniEcommerceDB ) and Collection ( products ) and Insert Your Data to Your Database. Please Check client site Public Folder for Dummy Product Data
+
+6. Run This Project following on this command
 
 ```js
 //comment following commands
