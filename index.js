@@ -38,6 +38,8 @@ async function run() {
     // Get ll Products Routes
     app.get("/products", async (req, res) => {
       try {
+        const page = parseInt(req.query.page) - 1;
+        const size = parseInt(req.query.size);
         const { search, brand, category, minPrice, maxPrice, sortBy } =
           req.query;
 
@@ -82,6 +84,8 @@ async function run() {
 
         const products = await productCollection
           .find(query)
+          .skip(page * size)
+          .limit(size)
           .sort(sort)
           .toArray();
         res.json(products);
@@ -92,9 +96,49 @@ async function run() {
       }
     });
 
-    // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
-    // Send a ping to confirm a successful connection
+    app.get("/product-count", async (req, res) => {
+      try {
+        const { search, brand, category, minPrice, maxPrice, sortBy } =
+          req.query;
+
+        let query = {};
+
+        if (search) {
+          query.productName = { $regex: new RegExp(search, "i") };
+        }
+
+        // Filter by brand
+        if (brand) {
+          query.brandName = brand;
+        }
+
+        // Filter by category
+        if (category) {
+          query.category = category;
+        }
+
+        // Filter by price range
+        if (minPrice && maxPrice) {
+          query.price = {
+            $gte: parseFloat(minPrice),
+            $lte: parseFloat(maxPrice),
+          };
+        } else if (minPrice) {
+          query.price = { $gte: parseFloat(minPrice) };
+        } else if (maxPrice) {
+          query.price = { $lte: parseFloat(maxPrice) };
+        }
+
+        const count = await productCollection.countDocuments(query);
+        res.send({ count });
+      } catch (err) {
+        console.log(err.message);
+        res
+          .status(500)
+          .json({ message: "Error retrieving products", error: err });
+      }
+    });
+
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
